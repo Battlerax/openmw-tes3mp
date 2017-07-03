@@ -120,15 +120,16 @@ ServerExtendedData getExtendedData(const char *addr, unsigned short port)
     if (queue == -1) // connection is failed
         return data;
 
-    {
-        RakNet::BitStream bs;
-        bs.Write((unsigned char) (ID_USER_PACKET_ENUM + 1));
-        peer->Send(&bs, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
-    }
+    RakNet::BitStream bs;
+    bs.Write((unsigned char) (ID_USER_PACKET_ENUM + 1));
+    peer->Send(&bs, HIGH_PRIORITY, RELIABLE_ORDERED, 0, RakNet::UNASSIGNED_SYSTEM_ADDRESS, true);
 
     RakNet::Packet *packet;
     bool done = false;
-    while (!done)
+
+    // This temporary fix causes extended server data to not be displayed for any server
+    int attempts = 0;
+    while (!done && ++attempts < 5000) 
     {
         for (packet = peer->Receive(); packet; peer->DeallocatePacket(packet), packet = peer->Receive())
         {
